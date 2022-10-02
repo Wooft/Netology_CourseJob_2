@@ -2,10 +2,10 @@ import requests
 import re
 import time
 import random
+
 with open('token') as file:
     vk_token = file.readline().strip()
     my_token = file.readline().strip()
-
 
 class VK:
     def __init__(self, user_id, token):
