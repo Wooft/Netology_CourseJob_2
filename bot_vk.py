@@ -1,5 +1,6 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from main import gettoken
 
 vk_session = vk_api.VkApi(token=gettoken())
@@ -16,5 +17,13 @@ for event in longpool.listen():
             id = event.user_id
             print(id)
             print(msg)
-            if msg == "hi":
+            if msg == "привет":
                 send_some_msg(id, "Hi friend!")
+            if msg == "начать поиск":
+                keyboard = VkKeyboard(one_time=False, inline=False)
+                keyboard.add_button('Предыдущий', VkKeyboardColor.SECONDARY)
+                keyboard.add_button('Следующий', VkKeyboardColor.PRIMARY)
+                keyboard.add_line()
+                keyboard.add_button('В избранное', VkKeyboardColor.POSITIVE)
+                keyboard.add_button('В черный список', VkKeyboardColor.NEGATIVE)
+                send_some_msg(id, "first_keyboard", keyboard)
