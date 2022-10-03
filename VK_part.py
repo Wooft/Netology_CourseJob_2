@@ -4,6 +4,7 @@ with open('vk_user_token') as file:
     vk_user_token = file.readline().strip()
 
 
+
 class VK:
     def __init__(self, user_id, token):
         self.user_id = user_id

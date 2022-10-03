@@ -34,18 +34,33 @@ class Vk_bot():
                 if event.to_me:
                     msg = event.text.lower()
                     id = event.user_id
-                    if msg == "начать":
+                    if msg == "начать":  #Первое обращение к боту, указываем на то как начать с ним работу правильно
                         some_text = 'Чтобы начать поиск, нажми на кнопку снизу'
                         keyboard = self.firts_keyboard()
                         self.sent_some_msg(id, some_text, keyboard)
-                    if msg == "начать поиск":
+                    if msg == "начать поиск": #Начинаем поиск, тут должен быть вызов функции заполнения БД, а также выдача первого результата
                         keyboard = self.two_keyboard()
                         self.sent_some_msg(id, "first_keyboard", keyboard)
+
+                    if msg == "Предыдущий": #Возвращаемся к предыдущему результату выдач
+                        pass
+
+                    if msg == "Следующий": #Переходи к седующему результату выдачи
+                        pass
+
+                    if msg == "В черный список": #Добавляем пользователя в черный список и исключаем его из списка выдачи юзеру
+                        pass
+
+                    if msg == "В избранное": #Добавяление в избранное пользователя (опционально - отправляем уведмоление о лайке тому кого лайкнули)
+                        pass
+
 
                     if event.type == VkEventType.USER_OFFLINE or msg == "остановить поиск":
                         some_text = 'Поиск остановлен. \n Чтобы начать поиск заново, нажми на кнопку снизу'
                         keyboard = self.firts_keyboard()
                         self.sent_some_msg(id, some_text, keyboard)
+
+
 
     def sent_some_msg(self, id, some_text, keyboard):
         vk_session.method("messages.send",
