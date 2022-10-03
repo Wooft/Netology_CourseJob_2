@@ -9,7 +9,8 @@ def getpath():
 def gettoken():
     os.chdir(getpath())
     with open('token', 'r') as file:
-        token_1 = file.readline().strip()
-        token_2 = file.readline().strip()
         token = file.readline().strip()
-    return token
+        user_token = file.readline().strip()
+    return token, user_token
+
+

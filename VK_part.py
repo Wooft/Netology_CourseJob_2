@@ -2,10 +2,12 @@ import requests
 import re
 import time
 import random
+from main import gettoken
 
-with open('token') as file:
-    vk_token = file.readline().strip()
-    my_token = file.readline().strip()
+
+vk_token, my_token  = gettoken()
+print(vk_token)
+print(my_token)
 
 class VK:
     def __init__(self, user_id, token):
@@ -94,6 +96,6 @@ class VK:
             time.sleep(1) #добавил задержку, чтобы обойти ограничение ВК на количество запросов в секунду
         return response
 
-me = VK('38598685', my_token)
+me = VK('15565301', my_token)
 my_group = VK('216216029', vk_token)
-print(my_group.send_msg_account_link('38598685'))
+print(my_group.send_msg_account_link('15565301'))
