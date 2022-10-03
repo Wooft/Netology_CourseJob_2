@@ -25,7 +25,7 @@ class VK:
         sex_users_search = 1 if user_sex_id == 2 else 2
         params_users_search = {'sex': sex_users_search, 'birth_year': user_year_of_birth, 'city': user_city_id,
                                'access_token': self.token, 'has_photo': '1', 'v': '5.131',
-                               'count': '10', 'offset': '10', 'fields': 'sex, city, bdate'}
+                               'count': '1000', 'offset': '1000', 'fields': 'sex, city, bdate'}
         fitted_person = requests.get(url=url_users_search, params=params_users_search).json()['response']['items']
         fitted_person_not_closed = list()
         result_list = list()
