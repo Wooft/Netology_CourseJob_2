@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import OperationalError, IntegrityError, PendingRollbackError
+from sqlalchemy.exc import OperationalError
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from config_db import DSN, DB_NAME, DSN_ERROR
@@ -42,21 +42,37 @@ class VKinderDB:
         }
 
     def insert_data(self, table: str, data: dict) -> bool:
-        try:
+        is_data = self.get_data(table, data)
+        if not is_data:
             self.session.add(self.models[table](**data))
             self.session.commit()
             return True
-        except (IntegrityError, PendingRollbackError):
-            self.session.rollback()
+        else:
             return False
+
+    def get_data(self, table: str, data: dict):
+        record = self.session.query(self.models[table]).filter_by(**data).first()
+        return record
 
     def find_matches(self, user: dict) -> list:
         matches = list()
+
+        favorite = self.session.query(User.id).join(
+            Favorite, User.id == Favorite.person_id
+        ).filter(Favorite.user_id == user['id'])
+        black_list = self.session.query(User.id).join(
+            BlackList, User.id == BlackList.person_id
+        ).filter(BlackList.user_id == user['id'])
+
         query = self.session.query(User).filter(
             User.id != user['id'],
+            User.gender != user['gender'],
             User.age == user['age'],
-            User.city == user['city']
+            User.city == user['city'],
+            User.id.not_in(favorite),
+            User.id.not_in(black_list)
         ).all()
+
         for match in query:
             matches.append(self.user_info_to_list(match))
         return matches
