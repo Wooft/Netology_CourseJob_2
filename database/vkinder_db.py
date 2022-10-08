@@ -3,13 +3,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from config_db import DSN, DB_NAME, DSN_ERROR
-from models import create_table
-from models import (
+from Netology_CourseJob_2.VK_part import me
+from Netology_CourseJob_2.database.config_db import DSN, DB_NAME, DSN_ERROR
+from Netology_CourseJob_2.database.models import create_table
+from Netology_CourseJob_2.database.models import (
     User,
     Photo,
     Favorite,
-    BlackList
+    BlackList,
+    Checked
 )
 
 
@@ -41,61 +43,111 @@ class VKinderDB:
             'black_list': BlackList
         }
 
-    def insert_data(self, table: str, data: dict) -> bool:
-        is_data = self.get_data(table, data)
-        if not is_data:
-            self.session.add(self.models[table](**data))
-            self.session.commit()
-            return True
-        else:
-            return False
+    def insert_data(self, table: str, data) -> bool:
+        for item in data:
+            is_data = self.get_data(table, item)
+            if not is_data:
+                self.session.add(self.models[table](**item))
+                self.session.commit()
+
 
     def get_data(self, table: str, data: dict):
         record = self.session.query(self.models[table]).filter_by(**data).first()
         return record
 
-    def find_matches(self, user: dict) -> list:
-        matches = list()
-
-        favorite = self.session.query(User.id).join(
-            Favorite, User.id == Favorite.person_id
-        ).filter(Favorite.user_id == user['id'])
-        black_list = self.session.query(User.id).join(
-            BlackList, User.id == BlackList.person_id
-        ).filter(BlackList.user_id == user['id'])
-
-        query = self.session.query(User).filter(
-            User.id != user['id'],
-            User.gender != user['gender'],
-            User.age == user['age'],
-            User.city == user['city'],
-            User.id.not_in(favorite),
-            User.id.not_in(black_list)
-        ).all()
-
-        for match in query:
-            matches.append(self.user_info_to_list(match))
-        return matches
-
-    def get_favorites(self, user_id: int) -> list:
-        favorites = list()
-        query = self.session.query(User).join(
-            Favorite, User.id == Favorite.person_id
-        ).filter(Favorite.user_id == user_id).all()
-        for favorite in query:
-            favorites.append(self.user_info_to_list(favorite))
-        return favorites
-
-    def user_info_to_list(self, user_info: object()) -> list:
-        return [
-            user_info.id,
-            user_info.first_name,
-            user_info.last_name,
-            user_info.url
-        ] + self.get_user_photos(user_info.id)
-
     def get_user_photos(self, user_id: int) -> list:
+        # получаем list из photo_url конкретного пользователя
+        # на входе int (id пользователя ВК), на выходе list
         photos = self.session.query(Photo).join(User).filter(
-            User.id == user_id
+            User.person_id == user_id
         ).all()
-        return [photo.url for photo in photos]
+        return [photo.photo_url for photo in photos]
+
+    def get_user_info_to_search(self, user_id: int) -> list:
+        # получаем list критериев (возраст, пол, город) для поиска подходящих конкретному пользователю людей по БД
+        # на входе int (id пользователя, общающегося с ботом), на выходе list
+        user_info_to_search = self.session.query(User).filter(
+            User.person_id == user_id
+        ).all()
+        return [[info.person_age, 'Female' if info.person_sex == 'Male' else 'Male', info.person_city_id] for info in
+                user_info_to_search][0]
+
+    def get_user_info_to_send(self, some_list):
+        # получаем nested list подходящих под критерии людей (в каждом вложенном list id, имя, фамилия, url
+        # подходящего человека)
+        # на входе list, на выходе nested list
+        infos = self.session.query(User).filter(
+            User.person_age == some_list[0],
+            User.person_sex == some_list[1],
+            User.person_city_id == some_list[2]
+        ).offset(0).all()
+        return [[info.person_id, info.person_first_name, info.person_last_name, info.person_url] for info in infos]
+
+    def get_info_and_photo_to_send(self, user_id):
+        # получаем nested list с полной информацией о подходящих под критерии поиска людях из БД
+        # в каждом вложенном list id, имя, фамилия, url, photo_url №1, photo_url №2, photo_url №3 подходящего человека)
+        # на входе int (id пользователя, общающегося с ботом), на выходе nested list
+        persons_info = vkinder.get_user_info_to_send(vkinder.get_user_info_to_search(user_id))
+        persons_photo = [vkinder.get_user_photos(photo[0]) for photo in persons_info]
+        persons_info_and_photo = list()
+        persons_info_and_photo.append([persons_info[person] + persons_photo[person] for person in range(len(persons_info))])
+        return persons_info_and_photo
+
+    def insert_new_data_from_vk(self, user_id):
+        # добавляем в БД информацию о пользователе и подходящих под его критерии поиска людях в БД
+        # информация о самом пользователе будет добавлена в БД только в том случае, если у него больше 3 фото в профиле
+        # на входе int (id пользователя, общающегося с ботом)
+        try:
+            data = me.get_user_and_persons_info_from_vk(user_id=user_id)
+            self.insert_data(table='user', data=data[0])
+            self.insert_data(table='photo', data=data[1])
+        except KeyError:
+            pass
+        return
+
+    def check_seen_persons(self, user_id, person_id):
+        # проверка человека на наличие в черном списке/избранном/просмотренном
+        in_black_list = self.session.query(BlackList).filter(
+            BlackList.person_send_dislike_id == user_id,
+            BlackList.person_get_dislike_id == person_id
+        ).all()
+        in_favorite = self.session.query(Favorite).filter(
+            Favorite.person_send_like_id == user_id,
+            Favorite.person_get_like_id == person_id
+        ).all()
+        in_checked = self.session.query(Checked).filter(
+            Checked.person_checked_id == user_id,
+            Checked.person_get_checked_id == person_id
+        ).all()
+        if in_black_list or in_favorite or in_checked:
+            return True
+        else:
+            return False
+
+    def get_person_to_send(self, user_id):
+        # поиск в БД одного подходящего человека, который не в черном списке/избранном/просмотренном
+        data = self.get_info_and_photo_to_send(user_id=user_id)[0]
+        for person in data:
+            if not self.check_seen_persons(user_id=user_id, person_id=person[0]):
+                result = person
+                break
+        return result
+
+    def add_seen_person_to_database(self, table, user_id, person_id):
+        # добавляем в черный список/избранное/просмотренное
+        if table == 'checked':
+            checked = Checked(person_checked_id=user_id, person_get_checked_id=person_id)
+            self.session.add(checked)
+            self.session.commit()
+        if table == 'black_list':
+            black_list = BlackList(person_send_dislike_id=user_id, person_get_dislike_id=person_id)
+            self.session.add(black_list)
+            self.session.commit()
+        if table == 'favorite':
+            favorite = Favorite(person_send_like_id=user_id, person_get_like_id=person_id)
+            self.session.add(favorite)
+            self.session.commit()
+        return
+
+
+vkinder = VKinderDB()

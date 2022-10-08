@@ -12,5 +12,3 @@ def gettoken():
         token = file.readline().strip()
         user_token = file.readline().strip()
     return token, user_token
-
-
