@@ -10,9 +10,8 @@ vk_session = vk_api.VkApi(token=token)
 session_api = vk_session.get_api()
 longpool = VkLongPoll(vk_session)
 
-
 class Vk_bot():
-    def __int__(self):
+    def __init__(self):
         pass
 
     def firts_keyboard(self):

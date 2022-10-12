@@ -11,4 +11,6 @@ def gettoken():
     with open('token', 'r') as file:
         token = file.readline().strip()
         user_token = file.readline().strip()
-    return token, user_token
+        some_token = file.readline().strip()
+        tg_token = file.readline().strip()
+    return token, user_token, some_token, tg_token
