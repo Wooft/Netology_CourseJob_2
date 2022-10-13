@@ -28,7 +28,7 @@ def get_text_messages(message):
         keyword = botkeyboard()
         hitext = 'Привет! \n' \
                  'Это бот для знакомств. Для начала работы с ботом - пришли свой id ответным сообщением\n' \
-                 ''
+                 'Для взаимодействия с ботом используйте меню или клавиатуру'
         bot.send_message(message.chat.id, text = hitext, reply_markup=keyword)
 
     if msg.lower() == "привет":
@@ -39,31 +39,47 @@ def get_text_messages(message):
 
     if msg.isdigit() == True:
         keyboard = botkeyboard()
+        global vk_id
         vk_id = msg
         bot.send_message(message.chat.id, text="id принят", reply_markup=keyboard)
-        vkinder.insert_new_data_from_vk(user_id=id)
-        bot.send_message(message.chat.id, text="Начинаем поиск")
+        vkinder.insert_new_data_from_vk(user_id=vk_id)
 
-    if msg == "/start_search" or msg.lower == "начать поиск":
-        vkinder.insert_new_data_from_vk(user_id=15565301)
-        person_to_send = vkinder.get_person_to_send(user_id=15565301)
-        photoid = []
-        for elements in person_to_send[4:]: #получаем список id фото для загрузки в кэш
-            photoid.append(int(elements[elements.index('_') + 1: ]))
+    if msg == "/start_search" or msg == "Начать поиск":
+        vkinder.insert_new_data_from_vk(user_id=vk_id)
+        person_to_send = vkinder.get_person_to_send(user_id=vk_id)
+        global current_person
+        current_person = person_to_send
+        send_info(message, person_to_send)
+        send_photos(message, person_to_send)
 
-        bot.send_message(message.chat.id, text=f"Имя: {person_to_send[1]}\n"
-                                               f"Фамилия: {person_to_send[2]}\n"
-                                               f"Ссылка на профиль: {person_to_send[3]}")
-        send_photos = newVK.get_photos_yid(person_to_send[0], photoid)
-        bot.send_media_group(message.chat.id, [telebot.types.InputMediaPhoto(open(send_photos[0], 'rb')),
-                                               telebot.types.InputMediaPhoto(open(send_photos[1], 'rb')),
-                                               telebot.types.InputMediaPhoto(open(send_photos[2], 'rb'))])
-        for elements in send_photos:
-            os.remove(elements)
+    if msg == "/next_person" or msg == "Следующий":
+        vkinder.add_seen_person_to_database(table='checked', user_id=vk_id, person_id=current_person[0])
+        vkinder.insert_new_data_from_vk(user_id=vk_id)
+        person_to_send = vkinder.get_person_to_send(user_id=vk_id)
+        current_person = person_to_send
+        send_info(message, person_to_send)
+        send_photos(message, person_to_send)
 
 
     if msg.lower() == '/next':
         pass
+@bot.message_handler(content_types=['photo']) #Бот обрабатывает событие,когда ему отпраляют текст
+def send_photos(message, person_to_send):
+    photoid = []
+    for elements in person_to_send[4:]:  # получаем список id фото для загрузки в кэш
+        photoid.append(int(elements[elements.index('_') + 1:]))
+    send_photos = newVK.get_photos_yid(person_to_send[0], photoid)
+    bot.send_media_group(message.chat.id, [telebot.types.InputMediaPhoto(open(send_photos[0], 'rb')),
+                                           telebot.types.InputMediaPhoto(open(send_photos[1], 'rb')),
+                                           telebot.types.InputMediaPhoto(open(send_photos[2], 'rb'))])
+    for elements in send_photos:
+        os.remove(elements)
+
+def send_info(message, person_to_send):
+    bot.send_message(message.chat.id, text=f"Имя: {person_to_send[1]}\n"
+                                           f"Фамилия: {person_to_send[2]}\n"
+                                           f"Ссылка на профиль: {person_to_send[3]}")
+
 
 
 if __name__ == '__main__':

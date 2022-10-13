@@ -11,9 +11,6 @@ session_api = vk_session.get_api()
 longpool = VkLongPoll(vk_session)
 
 class Vk_bot():
-    def __init__(self):
-        pass
-
     def firts_keyboard(self):
         keyboard = VkKeyboard(one_time=False)
         keyboard.add_button('Начать поиск', VkKeyboardColor.POSITIVE)

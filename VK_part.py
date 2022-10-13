@@ -106,11 +106,12 @@ class VK:
                                     'extended': '1', 'access_token': self.token, 'v': '5.131'}
         profile_photos = requests.get(url=url_person_photos_get,
                                       params=params_person_photos_get).json()['response']['items']
+
         for elements in list_photos:
             for photo in profile_photos:
                 if photo['id'] == elements:
                     for size in photo['sizes']:
-                        if size['type'] == 'y':
+                        if size['type'] == 'y' or size['type'] == 'x':
                             urls[f'{elements}.jpg'] = size['url']
         photo_upload = []
 
