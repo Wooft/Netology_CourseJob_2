@@ -5,20 +5,16 @@ from VK_part import VK
 from database.vkinder_db import vkinder
 import telebot
 
-
 token_1, token_2, token_3, tg_token = gettoken() #Получаем токен Телеграм бота
-
 bot = telebot.TeleBot(tg_token) #Создание нового бота
 newVK = VK(token_2)
-
 def botkeyboard():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     start_search = types.KeyboardButton("Начать поиск")
     stop_search = types.KeyboardButton("Остановить поиск")
     next = types.KeyboardButton("Следующий")
-    previous = types.KeyboardButton("Предыдущий")
     keyboard.row(start_search, stop_search)
-    keyboard.row(previous, next)
+    keyboard.row(next)
     return keyboard
 
 @bot.message_handler(content_types=['text', 'photo']) #Бот обрабатывает событие,когда ему отпраляют текст
@@ -60,9 +56,6 @@ def get_text_messages(message):
         send_info(message, person_to_send)
         send_photos(message, person_to_send)
 
-
-    if msg.lower() == '/next':
-        pass
 @bot.message_handler(content_types=['photo']) #Бот обрабатывает событие,когда ему отпраляют текст
 def send_photos(message, person_to_send):
     photoid = []
@@ -79,8 +72,6 @@ def send_info(message, person_to_send):
     bot.send_message(message.chat.id, text=f"Имя: {person_to_send[1]}\n"
                                            f"Фамилия: {person_to_send[2]}\n"
                                            f"Ссылка на профиль: {person_to_send[3]}")
-
-
 
 if __name__ == '__main__':
     bot.polling(none_stop=True, interval=0)

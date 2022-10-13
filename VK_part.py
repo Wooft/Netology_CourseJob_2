@@ -99,16 +99,10 @@ class VK:
         if 'temp' not in os.listdir(path):
             os.mkdir('temp')
         os.chdir(os.path.join(path, 'temp')) #переходим во временную папку
-        time.sleep(1)
         urls = {}
-        url_person_photos_get = 'https://api.vk.com/method/photos.get'
-        params_person_photos_get = {'owner_id': some_id, 'album_id': 'profile', 'photo_sizes': '1',
-                                    'extended': '1', 'access_token': self.token, 'v': '5.131'}
-        profile_photos = requests.get(url=url_person_photos_get,
-                                      params=params_person_photos_get).json()['response']['items']
-
+        profile_photos = self.get_urls(some_id)
         for elements in list_photos:
-            for photo in profile_photos:
+            for photo in profile_photos['response']['items']:
                 if photo['id'] == elements:
                     for size in photo['sizes']:
                         if size['type'] == 'y' or size['type'] == 'x':
@@ -119,5 +113,19 @@ class VK:
             photo_upload.append(keys)
             wget.download(items, keys)
         return photo_upload
+
+    def get_urls(self, some_id):
+        url_person_photos_get = 'https://api.vk.com/method/photos.get'
+        params_person_photos_get = {'owner_id': some_id, 'album_id': 'profile', 'photo_sizes': '1',
+                                    'extended': '1', 'access_token': self.token, 'v': '5.131'}
+        profile_photos = requests.get(url=url_person_photos_get,
+                                      params=params_person_photos_get).json()
+        print(profile_photos)
+        if 'error' in profile_photos.keys():
+            time.sleep(1)
+            self.get_urls(some_id)
+        else:
+            return profile_photos
+
 
 me = VK(vk_user_token)
