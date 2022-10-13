@@ -95,7 +95,6 @@ class Vk_bot():
             if event.type == VkEventType.USER_OFFLINE:
                 self.stop_search(id)
 
-
     def sent_some_msg(self, id, some_text, attachment, keyboard):
         vk_session.method(method="messages.send", values={"user_id": id, "message": some_text,
                                                           "attachment": attachment, "random_id": random.randint(0, 999999), "keyboard": keyboard.get_keyboard()})
