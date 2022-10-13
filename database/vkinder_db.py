@@ -3,10 +3,10 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import OperationalError
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from Netology_CourseJob_2.VK_part import me
-from Netology_CourseJob_2.database.config_db import DSN, DB_NAME, DSN_ERROR
-from Netology_CourseJob_2.database.models import create_table
-from Netology_CourseJob_2.database.models import (
+from VK_part import me
+from database.config_db import DSN, DB_NAME, DSN_ERROR
+from database.models import create_table
+from database.models import (
     User,
     Photo,
     Favorite,

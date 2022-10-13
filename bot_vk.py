@@ -15,14 +15,13 @@ class Vk_bot():
     def __int__(self):
         pass
 
-    def firts_keyboard(self):
+    def firts_keyboard(self): #Первая клавиатура для начала взаимодействия с ботом
         keyboard = VkKeyboard(one_time=False)
         keyboard.add_button('Начать поиск', VkKeyboardColor.POSITIVE)
         return keyboard
 
-    def two_keyboard(self):
+    def two_keyboard(self): #Вторая клавиатура для вывода результатов поиска
         keyboard = VkKeyboard(one_time=False, inline=False)
-        keyboard.add_button('Предыдущий', VkKeyboardColor.SECONDARY)
         keyboard.add_button('Следующий', VkKeyboardColor.PRIMARY)
         keyboard.add_line()
         keyboard.add_button('В черный список', VkKeyboardColor.NEGATIVE)
@@ -53,8 +52,6 @@ class Vk_bot():
                         keyboard = self.two_keyboard()
                         self.sent_some_msg(id, f'{person_to_send[1]} {person_to_send[2]} \n {person_to_send[3]}',
                                            f'{person_to_send[4]},{person_to_send[5]},{person_to_send[6]}', keyboard)
-                    elif msg == "предыдущий": #Возвращаемся к предыдущему результату выдач
-                        pass
                     elif msg == "следующий": #Переходи к седующему результату выдачи
                         vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
                         # просмотренный человек добавляется в таблицу 'checked'
@@ -89,13 +86,25 @@ class Vk_bot():
                         self.sent_some_msg(id, f'{person_to_send[1]} {person_to_send[2]} \n {person_to_send[3]}',
                                            f'{person_to_send[4]},{person_to_send[5]},{person_to_send[6]}', keyboard)
                     elif event.type == VkEventType.USER_OFFLINE or msg == "остановить поиск":
-                        some_text = 'Поиск остановлен. \n Чтобы начать поиск заново, нажми на кнопку снизу'
-                        keyboard = self.firts_keyboard()
-                        self.sent_some_msg(id, some_text, '', keyboard)
+                        self.stop_search(id)
+                    else:
+                        some_text = 'Для взаимодействия с ботом необходимо использовать клавиатуру'
+                        keyboard = self.two_keyboard()
+                        self.sent_some_msg(id, some_text, '',keyboard)
+
+            if event.type == VkEventType.USER_OFFLINE:
+                self.stop_search(id)
+
 
     def sent_some_msg(self, id, some_text, attachment, keyboard):
         vk_session.method(method="messages.send", values={"user_id": id, "message": some_text,
                                                           "attachment": attachment, "random_id": random.randint(0, 999999), "keyboard": keyboard.get_keyboard()})
+
+    def stop_search(self, id):
+        some_text = 'Поиск остановлен. \n Чтобы начать поиск заново, нажми на кнопку снизу'
+        keyboard = self.firts_keyboard()
+        self.sent_some_msg(id, some_text, '', keyboard)
+
 
 VKBot = Vk_bot()
 
