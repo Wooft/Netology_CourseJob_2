@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import OperationalError
+from sqlalchemy_utils import database_exists, create_database
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from VK_part import get_user_and_persons_info_from_vk
 from database.config_db import DSN, DB_NAME, DSN_ERROR
@@ -15,17 +15,10 @@ from database.models import (
 
 
 def connect_db():
-    try:
-        temp_engine = create_engine(DSN)
-        temp_engine.connect()
-    except OperationalError:
-        temp_engine = create_engine(DSN_ERROR)
-        with temp_engine.connect() as connection:
-            connection.connection.set_isolation_level(
-                ISOLATION_LEVEL_AUTOCOMMIT
-            )
-            connection.execute(f'CREATE DATABASE {DB_NAME}')
-    finally:
+    engine = create_engine(DSN, echo=True) #Создание временного движка
+    if not database_exists(engine.url):
+        create_database(engine.url)
+    else:
         return create_engine(DSN)
 
 
