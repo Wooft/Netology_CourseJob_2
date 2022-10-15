@@ -1,9 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import OperationalError
+from sqlalchemy_utils import database_exists, create_database
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
-from VK_part import me
+from VK_part import get_user_and_persons_info_from_vk
 from database.config_db import DSN, DB_NAME, DSN_ERROR
 from database.models import create_table
 from database.models import (
@@ -16,22 +15,14 @@ from database.models import (
 
 
 def connect_db():
-    try:
-        temp_engine = create_engine(DSN)
-        temp_engine.connect()
-    except OperationalError:
-        temp_engine = create_engine(DSN_ERROR)
-        with temp_engine.connect() as connection:
-            connection.connection.set_isolation_level(
-                ISOLATION_LEVEL_AUTOCOMMIT
-            )
-            connection.execute(f'CREATE DATABASE {DB_NAME}')
-    finally:
+    engine = create_engine(DSN, echo=True) #Создание временного движка
+    if not database_exists(engine.url):
+        create_database(engine.url)
+    else:
         return create_engine(DSN)
 
 
 class VKinderDB:
-
     def __init__(self):
         self.engine = connect_db()
         create_table(self.engine)
@@ -42,18 +33,15 @@ class VKinderDB:
             'favorite': Favorite,
             'black_list': BlackList
         }
-
     def insert_data(self, table: str, data) -> None:
         for item in data:
             is_data = self.get_data(table, item)
             if not is_data:
                 self.session.add(self.models[table](**item))
                 self.session.commit()
-
     def get_data(self, table: str, data: dict) -> object:
         record = self.session.query(self.models[table]).filter_by(**data).first()
         return record
-
     def get_user_photos(self, user_id: int) -> list:
         # получаем list из photo_url конкретного пользователя
         # на входе int (id пользователя ВК), на выходе list
@@ -123,14 +111,14 @@ class VKinderDB:
         ])
         return persons_info_and_photo
 
-    def insert_new_data_from_vk(self, user_id: int) -> None:
+    def insert_new_data_from_vk(self, user_id: int, token: str) -> None:
         # добавляем в БД информацию о пользователе
         # и подходящих под его критерии поиска людях в БД
         # информация о самом пользователе будет добавлена в БД
         # только в том случае, если у него больше 3 фото в профиле
         # на входе int (id пользователя, общающегося с ботом)
         try:
-            data = me.get_user_and_persons_info_from_vk(user_id=user_id)
+            data = get_user_and_persons_info_from_vk(user_id=user_id, token=token)
             self.insert_data(table='user', data=data[0])
             self.insert_data(table='photo', data=data[1])
         except KeyError:
@@ -193,5 +181,3 @@ class VKinderDB:
             self.session.commit()
         return
 
-
-vkinder = VKinderDB()
