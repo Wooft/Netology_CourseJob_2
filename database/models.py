@@ -5,7 +5,6 @@ from sqlalchemy import (
     ForeignKey
 )
 from sqlalchemy.orm import declarative_base, relationship
-
 Base = declarative_base()
 
 
@@ -29,7 +28,6 @@ class Photo(Base):
 
     photo_url = Column(String(length=150), primary_key=True)
     person_id = Column(Integer, ForeignKey('user.person_id'))
-
     user = relationship(User, backref='photos')
 
 
@@ -79,7 +77,14 @@ class Checked(Base):
         nullable=False
     )
 
+class Telegram(Base):
+    __tablename__ = 'telegram'
+    telegram_id = Column(Integer, primary_key=True)
+    vk_id = Column(
+        Integer, ForeignKey('user.person_id'),
+        nullable=False
+    )
+
 
 def create_table(engine):
-    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)

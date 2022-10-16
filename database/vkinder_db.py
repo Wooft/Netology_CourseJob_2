@@ -10,9 +10,9 @@ from database.models import (
     Photo,
     Favorite,
     BlackList,
-    Checked
+    Checked,
+    Telegram
 )
-
 
 def connect_db():
     engine = create_engine(DSN, echo=True) #Создание временного движка
@@ -20,7 +20,6 @@ def connect_db():
         create_database(engine.url)
     else:
         return create_engine(DSN)
-
 
 class VKinderDB:
     def __init__(self):
@@ -181,3 +180,24 @@ class VKinderDB:
             self.session.commit()
         return
 
+    def add_telegram(self, table, vk_id: int, telegram_id: int):
+        if table == 'telegram':
+            for c in self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all():
+                if c.telegram_id == telegram_id:
+                    pass
+                else:
+                    telegram = Telegram(vk_id=vk_id, telegram_id=telegram_id)
+                    self.session.add(telegram)
+                    self.session.commit()
+
+    def get_vkid_by_telegram(self, telegram_id: int):
+        for c in self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all():
+            return c.vk_id
+
+    def get_user_info(self, vk_id: int):
+        for items in self.session.query(User).filter(User.person_id == vk_id).all():
+            return [
+                items.person_first_name,
+                items.person_last_name,
+                items.person_age
+            ]

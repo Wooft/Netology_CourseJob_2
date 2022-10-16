@@ -11,11 +11,13 @@ def gettoken(): #Функция для получения токенов
     with open('token', 'r') as file:
         group_token = file.readline().strip()
         vk_user_token = file.readline().strip()
-    return group_token, vk_user_token
+        sometoken = file.readline().strip()
+        token = file.readline().strip()
+    return group_token, vk_user_token, sometoken, token
 
-group_token, vk_user_token = gettoken()
-newbot = Vk_bot(group_token) #запускаем нового бота
-
-if __name__ == '__main__':
-    newbot.some_bot(vk_user_token)
+# group_token, vk_user_token = gettoken()
+# newbot = Vk_bot(group_token) #запускаем нового бота
+#
+# if __name__ == '__main__':
+#     newbot.some_bot(vk_user_token)
 
