@@ -181,16 +181,21 @@ class VKinderDB:
         return
 
     def add_telegram(self, table, vk_id: int, telegram_id: int):
+        sample = (telegram_id, vk_id)
         if table == 'telegram':
             for c in self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all():
                 if c.telegram_id == telegram_id:
-                    pass
+                    #если в БД уже есть запись с telegram_id - обновляем для неё данные vk_id
+                    self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).update({'vk_id': vk_id})
+                    self.session.commit()
                 else:
+                    #Если нет - добавялем новую запись в бд
                     telegram = Telegram(vk_id=vk_id, telegram_id=telegram_id)
                     self.session.add(telegram)
                     self.session.commit()
 
     def get_vkid_by_telegram(self, telegram_id: int):
+        #Возвращаем vk_id для текущего пользователя Telegram, если запись о нем есть в бд
         for c in self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all():
             return c.vk_id
 
