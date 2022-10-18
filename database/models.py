@@ -2,7 +2,7 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    ForeignKey
+    ForeignKey, BigInteger
 )
 from sqlalchemy.orm import declarative_base, relationship
 Base = declarative_base()
@@ -79,10 +79,9 @@ class Checked(Base):
 
 class Telegram(Base):
     __tablename__ = 'telegram'
-    telegram_id = Column(Integer, primary_key=True)
+    telegram_id = Column(BigInteger, primary_key=True)
     vk_id = Column(Integer, nullable=False)
 
 
 def create_table(engine):
-    # Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)

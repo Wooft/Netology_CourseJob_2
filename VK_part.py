@@ -111,7 +111,7 @@ def get_urls(some_id, token):
                                     params=params_person_photos_get).json()
     if 'error' in profile_photos.keys():
         time.sleep(1)
-        get_urls(some_id)
+        get_urls(some_id, token)
     else:
         return profile_photos
 
@@ -123,4 +123,5 @@ def check_id(some_id, token):
         return False
     else:
         return True
+
 

@@ -1,12 +1,14 @@
 import os
 import pathlib
 import pprint
+import time
 
 from bot_vk import Vk_bot
 import telebot
 from telebot import types
 from VK_part import get_photos_byid, check_id
 from database.vkinder_db import VKinderDB
+from VK_part import check_id
 
 def getpath(): #Получаем текущий путь каталога с программой
     path = pathlib.Path.cwd()
@@ -54,6 +56,7 @@ def get_text_messages(message):
         keyboard = botkeyboard()
         vk_id = msg
         if check_id(vk_id, group_token):
+
             # Вызов функции, которая внесет id телеграма и VK ID в таблицу
             bot.send_message(message.chat.id, text="id принят", reply_markup=keyboard)
             vkinder.insert_new_data_from_vk(user_id=msg, token=vk_user_token)
@@ -119,6 +122,10 @@ def send_info(message, person_to_send):
 def get_person(message, vk_id, group_token):
     vkinder.insert_new_data_from_vk(user_id=vk_id, token=group_token)
     person_to_send = vkinder.get_person_to_send(user_id=vk_id)
+    time.sleep(0.5)
+    if len(person_to_send) == 0:
+        vkinder.insert_new_data_from_vk(user_id=vk_id, token=vk_user_token)
+        person_to_send = vkinder.get_person_to_send(user_id=vk_id)
     current_person = person_to_send
     send_info(message, person_to_send)
     send_photos(message, person_to_send, vk_user_token)
@@ -127,16 +134,17 @@ def get_person(message, vk_id, group_token):
 vkinder = VKinderDB()
 
 if __name__ == '__main__':
-
-    while True:
-        try:
-            answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
-            if answer.lower() == 'vk':
-                newbot.some_bot(vk_user_token)
-                break
-            if answer.lower() == 'tg':
-                bot.polling(none_stop=True, interval=0)
-                break
-        except Exception as e:
-            print('Данные введены неверно, попробуйте снова!')
+    bot.polling(none_stop=True, interval=0)
+    # while True:
+    #     try:
+    #         answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
+    #         if answer.lower() == 'vk':
+    #             newbot.some_bot(vk_user_token)
+    #             break
+    #         if answer.lower() == 'tg':
+    #             bot.polling(none_stop=True, interval=0)
+    #             break
+    #     except Exception as e:
+    #         print('Данные введены неверно, попробуйте снова!')
+    #         bot.polling(none_stop=True, interval=0)
 

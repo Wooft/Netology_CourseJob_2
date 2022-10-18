@@ -32,6 +32,7 @@ class VKinderDB:
             'favorite': Favorite,
             'black_list': BlackList
         }
+
     def insert_data(self, table: str, data) -> None:
         for item in data:
             is_data = self.get_data(table, item)
@@ -182,22 +183,27 @@ class VKinderDB:
 
     def add_telegram(self, table, vk_id: int, telegram_id: int):
         if table == 'telegram':
+            #Проверка таблицы telegram на пустоту
             rows = self.session.query(Telegram).all()
             if len(rows) == 0:
+                #Если таблица пустая, то vk_id добавялется как новая запись
                 telegram = Telegram(vk_id=vk_id, telegram_id=telegram_id)
                 self.session.add(telegram)
                 self.session.commit()
             else:
-                for c in self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all():
-                    if c.telegram_id == telegram_id:
-                        #если в БД уже есть запись с telegram_id - обновляем для неё данные vk_id
-                        self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).update({'vk_id': vk_id})
-                        self.session.commit()
-                    else:
-                        #Если нет - добавялем новую запись в бд
-                        telegram = Telegram(vk_id=vk_id, telegram_id=telegram_id)
-                        self.session.add(telegram)
-                        self.session.commit()
+                #Если таблица не пустая, то запускается проверка на существование записи в ней
+                answer = self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all()
+                print(len(answer))
+                if len(answer) == 0:
+                    # Если записи нет - то добавялется новая связь telegram_id - vk_id
+                    telegram = Telegram(vk_id=vk_id, telegram_id=telegram_id)
+                    self.session.add(telegram)
+                    self.session.commit()
+                else:
+                    #Если запись есть - в существующей записи обновляется vk_id
+                    self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).update({'vk_id': vk_id})
+                    self.session.commit()
+
 
     def get_vkid_by_telegram(self, telegram_id: int):
         #Возвращаем vk_id для текущего пользователя Telegram, если запись о нем есть в бд
@@ -216,3 +222,7 @@ class VKinderDB:
         user = self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id)
         user.delete(synchronize_session=False)
         self.session.commit
+
+    def get_telegrams(self, vk_id):
+        for user in self.session.query(Telegram).filter(Telegram.vk_id == vk_id).all():
+            print(user.vk_id)
