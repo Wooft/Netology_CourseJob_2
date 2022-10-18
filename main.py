@@ -127,16 +127,16 @@ def get_person(message, vk_id, group_token):
 vkinder = VKinderDB()
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True, interval=0)
-    # while True:
-    #     try:
-    #         answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
-    #         if answer.lower() == 'vk':
-    #             newbot.some_bot(vk_user_token)
-    #             break
-    #         if answer.lower() == 'tg':
-    #             bot.polling(none_stop=True, interval=0)
-    #             break
-    #     except Exception as e:
-    #         print('Данные введены неверно, попробуйте снова!')
+
+    while True:
+        try:
+            answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
+            if answer.lower() == 'vk':
+                newbot.some_bot(vk_user_token)
+                break
+            if answer.lower() == 'tg':
+                bot.polling(none_stop=True, interval=0)
+                break
+        except Exception as e:
+            print('Данные введены неверно, попробуйте снова!')
 
