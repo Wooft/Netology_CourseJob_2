@@ -189,7 +189,6 @@ class VKinderDB:
                 self.session.commit()
             else:
                 for c in self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).all():
-                    print(c)
                     if c.telegram_id == telegram_id:
                         #если в БД уже есть запись с telegram_id - обновляем для неё данные vk_id
                         self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id).update({'vk_id': vk_id})
