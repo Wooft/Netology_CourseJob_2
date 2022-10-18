@@ -57,7 +57,8 @@ def get_text_messages(message):
             vkinder.add_telegram(table='telegram', vk_id=msg, telegram_id=message.chat.id)
             self_person = vkinder.get_user_info(vk_id)
             if self_person == None:
-                print('Залупа')
+                pass
+
             else:
                 bot.send_message(message.chat.id, text=f"Имя: {self_person[0]}\n"
                                                        f"Фамилия: {self_person[1]}\n"
