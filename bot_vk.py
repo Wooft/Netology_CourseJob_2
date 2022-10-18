@@ -53,21 +53,26 @@ class Vk_bot:
                         current_person = self.get_person(id, token)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
                         if 'current_person' not in locals():
-                            self.sent_some_msg(id, 'Ошибка, нажмите "Начать поиск"', '', keyboard=self.two_keyboard())
-                            self.stop_search(id)
+                            self.fix_restart(id)
                         else:
                             vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
                             current_person = self.get_person(id, token)
                     elif msg == "в черный список": #Добавляем пользователя в черный список и исключаем его из списка выдачи юзеру
-                        self.sent_some_msg(id, 'Пользователь добавлен в черный список\n'
-                                               'Исключен из списка выдачи', '', keyboard=self.two_keyboard())
-                        vkinder.add_seen_person_to_database(table='black_list', user_id=id, person_id=current_person[0])
-                        current_person = self.get_person(id, token)
+                        if 'current_person' not in locals():
+                            self.fix_restart(id)
+                        else:
+                            self.sent_some_msg(id, 'Пользователь добавлен в черный список\n'
+                                                   'Исключен из списка выдачи', '', keyboard=self.two_keyboard())
+                            vkinder.add_seen_person_to_database(table='black_list', user_id=id, person_id=current_person[0])
+                            current_person = self.get_person(id, token)
                     elif msg == "в избранное": #Добавление в избранное пользователя (опционально - отправляем уведмоление о лайке тому кого лайкнули)
-                        self.sent_some_msg(id, 'Пользователь добавлен в избранное', '', keyboard=self.two_keyboard())
-                        vkinder.add_seen_person_to_database(table='favorite', user_id=id, person_id=current_person[0])
-                        # просмотренный человек добавляется в таблицу 'favorite'
-                        current_person = self.get_person(id, token)
+                        if 'current_person' not in locals():
+                            self.fix_restart(id)
+                        else:
+                            self.sent_some_msg(id, 'Пользователь добавлен в избранное', '', keyboard=self.two_keyboard())
+                            vkinder.add_seen_person_to_database(table='favorite', user_id=id, person_id=current_person[0])
+                            # просмотренный человек добавляется в таблицу 'favorite'
+                            current_person = self.get_person(id, token)
                     elif event.type == VkEventType.USER_OFFLINE or msg == "остановить поиск":
                         self.stop_search(id)
                     else:
@@ -76,6 +81,10 @@ class Vk_bot:
                         self.sent_some_msg(id, some_text, '',keyboard)
             if event.type == VkEventType.USER_OFFLINE:
                 self.stop_search(id)
+
+    def fix_restart(self, id):
+        self.sent_some_msg(id, 'Ошибка, нажмите "Начать поиск"', '', keyboard=self.two_keyboard())
+        self.stop_search(id)
 
     def sent_some_msg(self, id, some_text, attachment, keyboard):
         self.vk_session.method(method="messages.send", values={"user_id": id, "message": some_text,
