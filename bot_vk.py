@@ -52,8 +52,12 @@ class Vk_bot:
                     elif msg == "начать поиск":
                         current_person = self.get_person(id, token)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
-                        vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
-                        current_person = self.get_person(id, token)
+                        if 'current_person' not in locals():
+                            self.sent_some_msg(id, 'Ошибка, нажмите "Начать поиск"', '', keyboard=self.two_keyboard())
+                            self.stop_search(id)
+                        else:
+                            vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
+                            current_person = self.get_person(id, token)
                     elif msg == "в черный список": #Добавляем пользователя в черный список и исключаем его из списка выдачи юзеру
                         self.sent_some_msg(id, 'Пользователь добавлен в черный список\n'
                                                'Исключен из списка выдачи', '', keyboard=self.two_keyboard())
