@@ -1,5 +1,7 @@
 import os
 import pathlib
+import pprint
+
 from bot_vk import Vk_bot
 import telebot
 from telebot import types
@@ -36,6 +38,7 @@ def get_text_messages(message):
         keyword = botkeyboard()
         hitext = 'Привет! \n' \
                  'Это бот для знакомств. Для начала работы с ботом - пришли свой id ответным сообщением\n' \
+                 'Для работы бота профиль страницы должен быть открыт, а в основном альбоме доллжно быть не менее трёх фотографий.\n' \
                  'Для взаимодействия с ботом используйте меню или клавиатуру'
         bot.send_message(message.chat.id, text = hitext, reply_markup=keyword)
 
@@ -57,8 +60,8 @@ def get_text_messages(message):
             vkinder.add_telegram(table='telegram', vk_id=msg, telegram_id=message.chat.id)
             self_person = vkinder.get_user_info(vk_id)
             if self_person == None:
-                pass
-
+                bot.send_message(message.chat.id, text="Страница пользователя не удовлетворяет требованиям работы Бота", reply_markup=keyboard)
+                vkinder.remove_telegram(message.chat.id)
             else:
                 bot.send_message(message.chat.id, text=f"Имя: {self_person[0]}\n"
                                                        f"Фамилия: {self_person[1]}\n"
@@ -82,8 +85,15 @@ def get_text_messages(message):
 
     if msg == "/next_person" or msg == "Следующий":
         vk_id = vkinder.get_vkid_by_telegram(message.chat.id)
-        vkinder.add_seen_person_to_database(table='checked', user_id=vk_id, person_id=current_person[0])
-        current_person = get_person(message, vk_id, group_token)
+        if vk_id == None:
+            keyboard = botkeyboard()
+            bot.send_message(message.chat.id, text='Для начала поиска необходимо ввести ID пользователя в цифровом формате!', reply_markup=keyboard)
+        else:
+            if 'current_person' not in globals():
+                current_person = get_person(message, vk_id, group_token)
+            else:
+                vkinder.add_seen_person_to_database(table='checked', user_id=vk_id, person_id=current_person[0])
+                current_person = get_person(message, vk_id, group_token)
 
     else:
         keyboard = botkeyboard()
@@ -117,16 +127,16 @@ def get_person(message, vk_id, group_token):
 vkinder = VKinderDB()
 
 if __name__ == '__main__':
-
-    while True:
-        try:
-            answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
-            if answer.lower() == 'vk':
-                newbot.some_bot(vk_user_token)
-                break
-            if answer.lower() == 'tg':
-                bot.polling(none_stop=True, interval=0)
-                break
-        except Exception as e:
-            print('Данные введены неверно, попробуйте снова!')
+    bot.polling(none_stop=True, interval=0)
+    # while True:
+    #     try:
+    #         answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
+    #         if answer.lower() == 'vk':
+    #             newbot.some_bot(vk_user_token)
+    #             break
+    #         if answer.lower() == 'tg':
+    #             bot.polling(none_stop=True, interval=0)
+    #             break
+    #     except Exception as e:
+    #         print('Данные введены неверно, попробуйте снова!')
 

@@ -211,3 +211,8 @@ class VKinderDB:
                 items.person_last_name,
                 items.person_age
             ]
+
+    def remove_telegram(self, telegram_id: int):
+        user = self.session.query(Telegram).filter(Telegram.telegram_id == telegram_id)
+        user.delete(synchronize_session=False)
+        self.session.commit
