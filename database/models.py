@@ -80,10 +80,7 @@ class Checked(Base):
 class Telegram(Base):
     __tablename__ = 'telegram'
     telegram_id = Column(Integer, primary_key=True)
-    vk_id = Column(
-        Integer, ForeignKey('user.person_id'),
-        nullable=False
-    )
+    vk_id = Column(Integer, nullable=False)
 
 
 def create_table(engine):

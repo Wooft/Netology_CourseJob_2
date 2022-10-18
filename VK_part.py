@@ -118,5 +118,9 @@ def get_urls(some_id, token):
 def check_id(some_id, token):
     url_users_get = 'https://api.vk.com/method/users.get'
     params_users_get = {'access_token': token, 'v': '5.131', 'user_ids': some_id, 'fields': 'sex, city, bdate'}
-    user_info = requests.get(url=url_users_get, params=params_users_get).json()['response'][0]
-    print(user_info)
+    response = requests.get(url=url_users_get, params=params_users_get).json()
+    if len(response['response']) == 0 or 'deactivated' in response['response'][0].keys() or response['response'][0]['is_closed'] == True:
+        return False
+    else:
+        return True
+

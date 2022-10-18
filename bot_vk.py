@@ -11,11 +11,7 @@ class Vk_bot:
         self.session_api = self.vk_session.get_api()
         self.longpool = VkLongPoll(self.vk_session)
 
-
-class Vk_bot():
-
     def firts_keyboard(self): #Первая клавиатура для начала взаимодействия с ботом
-
         keyboard = VkKeyboard(one_time=False)
         keyboard.add_button('Начать поиск', VkKeyboardColor.POSITIVE)
         return keyboard
