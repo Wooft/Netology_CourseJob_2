@@ -48,7 +48,7 @@ class Vk_bot:
                         vkinder.insert_new_data_from_vk(user_id=id, token=token)
                         # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
                         keyboard = self.firts_keyboard()
-                        self.sent_some_msg(id, some_text, keyboard)
+                        self.sent_some_msg(id, some_text, '', keyboard=self.firts_keyboard())
                     elif msg == "начать поиск":
                         current_person = self.get_person(id, token)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
