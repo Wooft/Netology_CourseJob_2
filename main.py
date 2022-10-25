@@ -146,4 +146,3 @@ if __name__ == '__main__':
         except Exception as e:
             print('Данные введены неверно, попробуйте снова!')
             bot.polling(none_stop=True, interval=0)
-
