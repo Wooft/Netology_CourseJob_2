@@ -12,6 +12,7 @@ from database.models import (
     BlackList,
     Checked
 )
+from multiprocessing import Pool
 
 
 def connect_db():
@@ -117,13 +118,17 @@ class VKinderDB:
         # информация о самом пользователе будет добавлена в БД
         # только в том случае, если у него больше 3 фото в профиле
         # на входе int (id пользователя, общающегося с ботом)
-        try:
-            data = get_user_and_persons_info_from_vk(user_id=user_id, token=token)
-            self.insert_data(table='user', data=data[0])
-            self.insert_data(table='photo', data=data[1])
-        except KeyError:
-            pass
-        return
+        while True:
+            try:
+                offset = 0
+                data = get_user_and_persons_info_from_vk(user_id=user_id, token=token, offset=offset)
+                self.insert_data(table='user', data=data[0])
+                self.insert_data(table='photo', data=data[1])
+                offset += 20
+                print(f'Добавлены {offset} пользователей')
+            except KeyError:
+                pass
+            return
 
     def check_seen_persons(self, user_id, person_id):
         # проверка человека на наличие в черном списке/избранном/просмотренном

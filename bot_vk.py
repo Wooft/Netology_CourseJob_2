@@ -3,6 +3,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from database.vkinder_db import VKinderDB
 import random
+from multiprocessing import Pool
 
 class Vk_bot:
     def __init__(self, token):
@@ -45,7 +46,8 @@ class Vk_bot:
                     id = event.user_id
                     if msg == "начать":  #Первое обращение к боту, указываем на то как начать с ним работу правильно
                         some_text = 'Чтобы начать поиск, нажми на кнопку снизу'
-                        vkinder.insert_new_data_from_vk(user_id=id, token=token)
+                        pool = Pool(processes=2)
+                        pool.apply(vkinder.insert_new_data_from_vk(user_id=id, token=token))
                         # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
                         keyboard = self.firts_keyboard()
                         self.sent_some_msg(id, some_text, '', keyboard=self.firts_keyboard())

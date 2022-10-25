@@ -1,7 +1,7 @@
 import requests
 import re
 import datetime
-def get_user_and_persons_info_from_vk(user_id, token):
+def get_user_and_persons_info_from_vk(user_id, token, offset):
     # На вход подается ID пользователя, который общается с ботом
     # На выходе получаем список со списками. Вложенные списки имеют 6 элементов и содержат информацию о
     # подходящих под критерии поиска людях (кандидатах):
@@ -19,7 +19,7 @@ def get_user_and_persons_info_from_vk(user_id, token):
     sex_users_search = 1 if user_sex_id == 2 else 2
     params_users_search = {'sex': sex_users_search, 'birth_year': user_year_of_birth, 'city': user_city_id,
                            'access_token': token, 'has_photo': '1', 'v': '5.131',
-                           'count': '50', 'offset': '50', 'fields': 'sex, city, bdate'}
+                           'count': '50', 'offset': offset, 'fields': 'sex, city, bdate'}
     fitted_person = requests.get(url=url_users_search, params=params_users_search).json()['response']['items']
     fitted_person_not_closed = list()
     fitted_person_not_closed.append(
@@ -75,4 +75,5 @@ def get_user_and_persons_info_from_vk(user_id, token):
         dict_person_photo['photo_url'] = f'photo{person[0]}_{person[9]}'
         dict_person_photo['person_id'] = person[0]
         person_photo_result_list.append(dict_person_photo)
+    print(person_info_result_list[-1])
     return person_info_result_list, person_photo_result_list

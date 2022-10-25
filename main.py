@@ -1,7 +1,7 @@
 import os
 import pathlib
 from bot_vk import Vk_bot
-
+from multiprocessing import Pool
 def getpath(): #Получаем текущий путь каталога с программой
     path = pathlib.Path.cwd()
     return path
@@ -17,4 +17,5 @@ group_token, vk_user_token = gettoken()
 newbot = Vk_bot(group_token) #запускаем нового бота
 
 if __name__ == '__main__':
-    newbot.some_bot(vk_user_token)
+    pool = Pool(processes=2)
+    pool.apply(func=newbot.some_bot(vk_user_token))
