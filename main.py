@@ -8,7 +8,7 @@ import telebot
 from telebot import types
 from VK_part import get_photos_byid, check_id
 from database.vkinder_db import VKinderDB
-from VK_part import check_id
+from VK_part import check_id, get_user_and_persons_info_from_vk
 
 def getpath(): #Получаем текущий путь каталога с программой
     path = pathlib.Path.cwd()
@@ -134,17 +134,16 @@ def get_person(message, vk_id, group_token):
 vkinder = VKinderDB()
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True, interval=0)
-    # while True:
-    #     try:
-    #         answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
-    #         if answer.lower() == 'vk':
-    #             newbot.some_bot(vk_user_token)
-    #             break
-    #         if answer.lower() == 'tg':
-    #             bot.polling(none_stop=True, interval=0)
-    #             break
-    #     except Exception as e:
-    #         print('Данные введены неверно, попробуйте снова!')
-    #         bot.polling(none_stop=True, interval=0)
+    while True:
+        try:
+            answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
+            if answer.lower() == 'vk':
+                newbot.some_bot(vk_user_token)
+                break
+            if answer.lower() == 'tg':
+                bot.polling(none_stop=True, interval=0)
+                break
+        except Exception as e:
+            print('Данные введены неверно, попробуйте снова!')
+            bot.polling(none_stop=True, interval=0)
 
