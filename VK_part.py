@@ -15,6 +15,7 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
     # [ID кандидата, Имя кандидата, Фамилия кандидата, ID фото №1, ID фото №2, ID фото №3].
     # Кандидаты с закрытыми профилями и имеющие меньше 3 фотографий профиля отсеиваются
     fitted_person, offset = search_user(user_id, token, offset)
+    pprint.pprint(fitted_person)
     photos = list()
     #Проверка на то, что профиль пользователя открыт
     time.sleep(0.5)
@@ -26,7 +27,6 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
                      'person_last_name': fitted_person['last_name'],
                      'person_sex': 'male' if fitted_person['sex'] == 1 else 'female',
                      'person_url': f"https://vk.com/id{fitted_person['id']}"}
-    photos_dict = {}
     person_photo_result_list = []
     for elements in photos:
         dict_person_photo = dict()
@@ -38,10 +38,9 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
 
 def search_user(user_id, token, offset):
     global person
-    time.sleep(0.33)
+    time.sleep(0.4)
     url_users_get = 'https://api.vk.com/method/users.get'
     params_users_get = {'access_token': token, 'v': '5.131', 'user_ids': user_id, 'fields': 'sex, city, bdate'}
-    pprint.pprint(requests.get(url=url_users_get, params=params_users_get).json())
     user_info = requests.get(url=url_users_get, params=params_users_get).json()['response'][0]
     url_users_search = 'https://api.vk.com/method/users.search'
     sex_users_search = 1 if user_info['sex'] == 2 else 2

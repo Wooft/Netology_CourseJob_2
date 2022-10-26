@@ -78,7 +78,7 @@ def get_text_messages(message):
         vk_id = 15565301
         #Счетчик порядкового номера записи в выдаче
         global offset
-        offset = 9
+        offset = 20
         person, photos, offset = get_user_and_persons_info_from_vk(vk_id, vk_user_token, offset)
 
         #Отправка информации о пользователе
