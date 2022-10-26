@@ -7,9 +7,9 @@ import re
 import datetime
 import wget
 
-
+#Основная функция, возвращает информацию о найденном пользователе, список фото и параметр поярдковой выдачи
 def get_user_and_persons_info_from_vk(user_id, token, offset):
-    # На вход подается ID пользователя, который общается с ботом
+    # На вход подается ID пользователя, который общается с ботом, токен и параметр
     # На выходе получаем список со списками. Вложенные списки имеют 6 элементов и содержат информацию о
     # подходящих под критерии поиска людях (кандидатах):
     # [ID кандидата, Имя кандидата, Фамилия кандидата, ID фото №1, ID фото №2, ID фото №3].
@@ -32,7 +32,13 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
                      'person_last_name': fitted_person['last_name'],
                      'person_sex': 'male' if fitted_person['sex'] == 1 else 'female',
                      'person_url': f"https://vk.com/id{fitted_person['id']}"}
-
+    photos_dict = {}
+    for elements in photos:
+        photos_dict.update( {
+            'person_id': person_info['person_id'],
+            'photo_url': elements
+        } )
+    print(photos_dict)
 
     return person_info, photos, offset
 

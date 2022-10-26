@@ -76,33 +76,29 @@ def get_text_messages(message):
     if msg == "/start_search" or msg == "Начать поиск":
         #Функция, которая проверяет, привязан ли к Telegram_id какой то VK_id
         vk_id = 15565301
+        #Счетчик порядкового номера записи в выдаче
+        global offset
         offset = 1
         person, photos, offset = get_user_and_persons_info_from_vk(vk_id, vk_user_token, offset)
-        pprint.pprint(person)
+        #Отправка информации о пользователе
         bot.send_message(message.chat.id, text=f"Имя: {person['person_first_name']}\n"
                                                f"Фамилия: {person['person_last_name']}\n"
                                                f"Ссылка на профиль: {person['person_url']}")
+        #3 лучших фото из профиля пользователя отправляются
         send_photos(message, person, vk_user_token)
-        # vk_id = vkinder.get_vkid_by_telegram(message.chat.id)
-        # if vk_id == None:
-        #     keyboard = botkeyboard()
-        #     bot.send_message(message.chat.id, text='Для начала поиска необходимо ввести ID пользователя в цифровом формате!', reply_markup=keyboard)
-        # else:
-        #     global current_person
-        #     current_person = get_person(message, vk_id, group_token)
-
 
     if msg == "/next_person" or msg == "Следующий":
-        vk_id = vkinder.get_vkid_by_telegram(message.chat.id)
-        if vk_id == None:
-            keyboard = botkeyboard()
-            bot.send_message(message.chat.id, text='Для начала поиска необходимо ввести ID пользователя в цифровом формате!', reply_markup=keyboard)
-        else:
-            if 'current_person' not in globals():
-                current_person = get_person(message, vk_id, group_token)
-            else:
-                vkinder.add_seen_person_to_database(table='checked', user_id=vk_id, person_id=current_person[0])
-                current_person = get_person(message, vk_id, group_token)
+        vk_id = 15565301
+        offset +=1
+        person, photos, offset = get_user_and_persons_info_from_vk(vk_id, vk_user_token, offset)
+        # Отправка информации о пользователе
+        bot.send_message(message.chat.id, text=f"Имя: {person['person_first_name']}\n"
+                                               f"Фамилия: {person['person_last_name']}\n"
+                                               f"Ссылка на профиль: {person['person_url']}")
+        # 3 лучших фото из профиля пользователя отправляются
+        send_photos(message, person, vk_user_token)
+
+
 
     else:
         keyboard = botkeyboard()
