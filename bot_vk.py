@@ -1,9 +1,12 @@
+import pprint
+
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from database.vkinder_db import VKinderDB
 import random
 from multiprocessing import Pool
+from VK_part import get_user_and_persons_info_from_vk
 
 class Vk_bot:
     def __init__(self, token):
@@ -27,16 +30,22 @@ class Vk_bot:
         keyboard.add_button('Остановить поиск', VkKeyboardColor.NEGATIVE)
         return keyboard
 
-    def get_person(self, id, token):
-        vkinder.insert_new_data_from_vk(user_id=id, token=token)
-        # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
-        person_to_send = vkinder.get_person_to_send(user_id=id)
-        # поиск в БД подходящего человек
-        current_person = person_to_send
+    def get_person(self, id, token, offset):
+        # vkinder.insert_new_data_from_vk(user_id=id, token=token)
+        # # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
+        # person_to_send = vkinder.get_person_to_send(user_id=id)
+        # # поиск в БД подходящего человек
+        # current_person = person_to_send
+
+        # self.sent_some_msg(id, f'{person_to_send[1]} {person_to_send[2]} \n {person_to_send[3]}',
+        #                    f'{person_to_send[4]},{person_to_send[5]},{person_to_send[6]}', keyboard)
+        # return current_person
         keyboard = self.two_keyboard()
-        self.sent_some_msg(id, f'{person_to_send[1]} {person_to_send[2]} \n {person_to_send[3]}',
-                           f'{person_to_send[4]},{person_to_send[5]},{person_to_send[6]}', keyboard)
-        return current_person
+        person, photo, offset = get_user_and_persons_info_from_vk(id, token, offset)
+        self.sent_some_msg(id, f'{person["person_first_name"]} {person["person_last_name"]} \n {person["person_url"]}',
+                           f'{photo[0]["photo_url"]},{photo[1]["photo_url"]},{photo[2]["photo_url"]}', keyboard=keyboard)
+        return offset
+
 
     def some_bot(self, token: str):
         for event in self.longpool.listen():
@@ -52,7 +61,8 @@ class Vk_bot:
                         keyboard = self.firts_keyboard()
                         self.sent_some_msg(id, some_text, '', keyboard=self.firts_keyboard())
                     elif msg == "начать поиск":
-                        current_person = self.get_person(id, token)
+                        offset = 1
+                        offset = self.get_person(id, token, offset)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
                         if 'current_person' not in locals():
                             self.fix_restart(id)
