@@ -23,12 +23,22 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
         offset += 1
         time.sleep(0.33)
         get_user_and_persons_info_from_vk(user_id, token, offset)
+    pprint.pprint(fitted_person)
 
     person_info = {
         'id': fitted_person['id'],
         'name': fitted_person['first_name'],
         'last_name': fitted_person['last_name']
     }
+    #
+    # {'person_age': 31,
+    #  'person_city_id': fitted_person['id'],
+    #  'person_first_name': fitted_person['first_name'],
+    #  'person_id': 588783798,
+    #  'person_last_name': fitted_person['last_name'],
+    #  'person_sex': 'Female',
+    #  'person_url': 'https://vk.com/id588783798'},
+
     return person_info, photos, offset
 
 def search_user(user_id, token, offset):
@@ -60,7 +70,6 @@ def get_user_photo(user_id, token):
                                 'extended': '1', 'access_token': token, 'v': '5.131'}
     profile_photos = requests.get(url=url_person_photos_get,
                                   params=params_person_photos_get).json()['response']['items']
-    print(profile_photos)
     likes_list = list()
     for photo in profile_photos:
         likes_list.append(photo['likes']['count'])
@@ -111,5 +120,7 @@ def check_id(some_id, token):
         return False
     else:
         return True
+
+get_user_and_persons_info_from_vk(15565301, 'vk1.a.CDg6S4Z-DWuUEXId3MDPW8fOUlxpq1G_7JJZzK1w8xYMMa4Qmnbxz3WmvIefUPw6vNPFom3UfZ-C08QVa_Xql7GSRwmAEdIVz_TOqnWFji1LhVkR4tLl7tY08XFk8bUdO3KtfpXtYGn3FiavD4PY9ADOnCTsNbCNn7u0il19D7adMVi1VgCjdZqylFPZ5AoF', 1)
 
 
