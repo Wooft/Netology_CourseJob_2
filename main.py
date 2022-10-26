@@ -78,14 +78,15 @@ def get_text_messages(message):
         vk_id = 15565301
         #Счетчик порядкового номера записи в выдаче
         global offset
-        offset = 1
+        offset = 9
         person, photos, offset = get_user_and_persons_info_from_vk(vk_id, vk_user_token, offset)
+
         #Отправка информации о пользователе
         bot.send_message(message.chat.id, text=f"Имя: {person['person_first_name']}\n"
                                                f"Фамилия: {person['person_last_name']}\n"
                                                f"Ссылка на профиль: {person['person_url']}")
         #3 лучших фото из профиля пользователя отправляются
-        send_photos(message, person, vk_user_token)
+        send_photos(message=message, person=person, token=vk_user_token, path=getpath(), offset=offset)
 
     if msg == "/next_person" or msg == "Следующий":
         vk_id = 15565301
@@ -96,7 +97,7 @@ def get_text_messages(message):
                                                f"Фамилия: {person['person_last_name']}\n"
                                                f"Ссылка на профиль: {person['person_url']}")
         # 3 лучших фото из профиля пользователя отправляются
-        send_photos(message, person, vk_user_token)
+        send_photos(message=message, person=person, token=vk_user_token, path=getpath(), offset=offset)
 
 
 
@@ -106,12 +107,18 @@ def get_text_messages(message):
                                                'ID пользователя вводится только в цифровом формате', reply_markup=keyboard)
 
 @bot.message_handler(content_types=['photo']) #Бот обрабатывает событие,когда ему отпраляют текст
-def send_photos(message, person, token, path=getpath()):
-    photoid = get_user_photo(person['person_id'], token)
+def send_photos(message, person, token, path, offset):
+    photoid = get_user_photo(person['person_id'], token, offset)
     send_photos = get_photos_byid(person['person_id'], photoid, token, path)
-    bot.send_media_group(message.chat.id, [telebot.types.InputMediaPhoto(open(send_photos[0], 'rb')),
-                                           telebot.types.InputMediaPhoto(open(send_photos[1], 'rb')),
-                                           telebot.types.InputMediaPhoto(open(send_photos[2], 'rb'))])
+    pprint.pprint(send_photos)
+    if len(send_photos) == 3:
+        bot.send_media_group(message.chat.id, [telebot.types.InputMediaPhoto(open(send_photos[0], 'rb')),
+                                               telebot.types.InputMediaPhoto(open(send_photos[1], 'rb')),
+                                               telebot.types.InputMediaPhoto(open(send_photos[2], 'rb'))])
+    elif len(send_photos) >= 1:
+        bot.send_photo(message.chat.id, open(send_photos[0], 'rb'))
+    elif len(send_photos) == 0:
+        bot.send_message(message.chat.id, text='У пользователя нет фото в профиле')
     for elements in send_photos:
         os.remove(elements)
 
