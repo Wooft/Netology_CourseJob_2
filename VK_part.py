@@ -23,21 +23,15 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
         offset += 1
         time.sleep(0.33)
         get_user_and_persons_info_from_vk(user_id, token, offset)
-    pprint.pprint(fitted_person)
 
-    person_info = {
-        'id': fitted_person['id'],
-        'name': fitted_person['first_name'],
-        'last_name': fitted_person['last_name']
-    }
-    #
-    # {'person_age': 31,
-    #  'person_city_id': fitted_person['id'],
-    #  'person_first_name': fitted_person['first_name'],
-    #  'person_id': 588783798,
-    #  'person_last_name': fitted_person['last_name'],
-    #  'person_sex': 'Female',
-    #  'person_url': 'https://vk.com/id588783798'},
+    person_info =   {'person_age': datetime.datetime.now().year - fitted_person['bdate'],
+                     'person_city_id': fitted_person['id'],
+                     'person_first_name': fitted_person['first_name'],
+                     'person_id': fitted_person['id'],
+                     'person_last_name': fitted_person['last_name'],
+                     'person_sex': 'male' if fitted_person['sex'] == 1 else 'female',
+                     'person_url': f"https://vk.com/id{fitted_person['id']}"}
+    pprint.pprint(person_info)
 
     return person_info, photos, offset
 
