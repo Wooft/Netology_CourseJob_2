@@ -15,6 +15,7 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
     # [ID кандидата, Имя кандидата, Фамилия кандидата, ID фото №1, ID фото №2, ID фото №3].
     # Кандидаты с закрытыми профилями и имеющие меньше 3 фотографий профиля отсеиваются
     fitted_person, offset = search_user(user_id, token, offset)
+    print(f'Возвращенный offset {offset}')
     photos = list()
     #Проверка на то, что профиль пользователя открыт
     time.sleep(0.33)
@@ -24,14 +25,14 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
         time.sleep(0.33)
         get_user_and_persons_info_from_vk(user_id, token, offset)
 
-    person_info =   {'person_age': datetime.datetime.now().year - fitted_person['bdate'],
-                     'person_city_id': fitted_person['id'],
+    person_info =   {'person_age': datetime.datetime.now().year - int(re.findall(string=fitted_person['bdate'], pattern='\d{4}')[0]),
+                     'person_city_id': fitted_person['city']['id'],
                      'person_first_name': fitted_person['first_name'],
                      'person_id': fitted_person['id'],
                      'person_last_name': fitted_person['last_name'],
                      'person_sex': 'male' if fitted_person['sex'] == 1 else 'female',
                      'person_url': f"https://vk.com/id{fitted_person['id']}"}
-    pprint.pprint(person_info)
+
 
     return person_info, photos, offset
 
@@ -54,7 +55,6 @@ def search_user(user_id, token, offset):
         search_user(user_id, token, offset)
     print(f'offset = {offset}')
     return person, offset
-
 
 
 def get_user_photo(user_id, token):
@@ -115,6 +115,5 @@ def check_id(some_id, token):
     else:
         return True
 
-get_user_and_persons_info_from_vk(15565301, 'vk1.a.CDg6S4Z-DWuUEXId3MDPW8fOUlxpq1G_7JJZzK1w8xYMMa4Qmnbxz3WmvIefUPw6vNPFom3UfZ-C08QVa_Xql7GSRwmAEdIVz_TOqnWFji1LhVkR4tLl7tY08XFk8bUdO3KtfpXtYGn3FiavD4PY9ADOnCTsNbCNn7u0il19D7adMVi1VgCjdZqylFPZ5AoF', 1)
 
 

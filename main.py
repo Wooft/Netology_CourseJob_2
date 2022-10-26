@@ -6,7 +6,7 @@ import time
 from bot_vk import Vk_bot
 import telebot
 from telebot import types
-from VK_part import get_photos_byid, check_id
+from VK_part import get_photos_byid, check_id, get_user_and_persons_info_from_vk, get_user_photo
 from database.vkinder_db import VKinderDB
 from VK_part import check_id, get_user_and_persons_info_from_vk
 
@@ -56,7 +56,6 @@ def get_text_messages(message):
         keyboard = botkeyboard()
         vk_id = msg
         if check_id(vk_id, group_token):
-
             # Вызов функции, которая внесет id телеграма и VK ID в таблицу
             bot.send_message(message.chat.id, text="id принят", reply_markup=keyboard)
             vkinder.insert_new_data_from_vk(user_id=msg, token=vk_user_token)
@@ -74,16 +73,23 @@ def get_text_messages(message):
         else:
             bot.send_message(message.chat.id, text="Введенный ID недействителен, повторите ввод ID", reply_markup=keyboard)
 
-
     if msg == "/start_search" or msg == "Начать поиск":
         #Функция, которая проверяет, привязан ли к Telegram_id какой то VK_id
-        vk_id = vkinder.get_vkid_by_telegram(message.chat.id)
-        if vk_id == None:
-            keyboard = botkeyboard()
-            bot.send_message(message.chat.id, text='Для начала поиска необходимо ввести ID пользователя в цифровом формате!', reply_markup=keyboard)
-        else:
-            global current_person
-            current_person = get_person(message, vk_id, group_token)
+        vk_id = 15565301
+        offset = 1
+        person, photos, offset = get_user_and_persons_info_from_vk(vk_id, vk_user_token, offset)
+        pprint.pprint(person)
+        bot.send_message(message.chat.id, text=f"Имя: {person['person_first_name']}\n"
+                                               f"Фамилия: {person['person_last_name']}\n"
+                                               f"Ссылка на профиль: {person['person_url']}")
+        send_photos(message, person, vk_user_token)
+        # vk_id = vkinder.get_vkid_by_telegram(message.chat.id)
+        # if vk_id == None:
+        #     keyboard = botkeyboard()
+        #     bot.send_message(message.chat.id, text='Для начала поиска необходимо ввести ID пользователя в цифровом формате!', reply_markup=keyboard)
+        # else:
+        #     global current_person
+        #     current_person = get_person(message, vk_id, group_token)
 
 
     if msg == "/next_person" or msg == "Следующий":
@@ -104,11 +110,9 @@ def get_text_messages(message):
                                                'ID пользователя вводится только в цифровом формате', reply_markup=keyboard)
 
 @bot.message_handler(content_types=['photo']) #Бот обрабатывает событие,когда ему отпраляют текст
-def send_photos(message, person_to_send, token, path=getpath()):
-    photoid = []
-    for elements in person_to_send[4:]:  # получаем список id фото для загрузки в кэш
-        photoid.append(int(elements[elements.index('_') + 1:]))
-    send_photos = get_photos_byid(person_to_send[0], photoid, token, path)
+def send_photos(message, person, token, path=getpath()):
+    photoid = get_user_photo(person['person_id'], token)
+    send_photos = get_photos_byid(person['person_id'], photoid, token, path)
     bot.send_media_group(message.chat.id, [telebot.types.InputMediaPhoto(open(send_photos[0], 'rb')),
                                            telebot.types.InputMediaPhoto(open(send_photos[1], 'rb')),
                                            telebot.types.InputMediaPhoto(open(send_photos[2], 'rb'))])
@@ -119,30 +123,33 @@ def send_info(message, person_to_send):
     bot.send_message(message.chat.id, text=f"Имя: {person_to_send[1]}\n"
                                            f"Фамилия: {person_to_send[2]}\n"
                                            f"Ссылка на профиль: {person_to_send[3]}")
-def get_person(message, vk_id, group_token):
-    vkinder.insert_new_data_from_vk(user_id=vk_id, token=group_token)
-    person_to_send = vkinder.get_person_to_send(user_id=vk_id)
-    time.sleep(0.5)
-    if len(person_to_send) == 0:
-        vkinder.insert_new_data_from_vk(user_id=vk_id, token=vk_user_token)
-        person_to_send = vkinder.get_person_to_send(user_id=vk_id)
-    current_person = person_to_send
-    send_info(message, person_to_send)
-    send_photos(message, person_to_send, vk_user_token)
-    return current_person
+def get_person(message, vk_id, group_token, offset):
+    person, photos, offset = get_user_and_persons_info_from_vk(vk_id, group_token, offset)
+
+    # vkinder.insert_new_data_from_vk(user_id=vk_id, token=group_token)
+    # person_to_send = vkinder.get_person_to_send(user_id=vk_id)
+    # time.sleep(0.5)
+    # if len(person_to_send) == 0:
+    #     vkinder.insert_new_data_from_vk(user_id=vk_id, token=vk_user_token)
+    #     person_to_send = vkinder.get_person_to_send(user_id=vk_id)
+    # current_person = person_to_send
+    # send_info(message, person_to_send)
+    # send_photos(message, person_to_send, vk_user_token)
+    # return current_person
 
 vkinder = VKinderDB()
 
 if __name__ == '__main__':
-    while True:
-        try:
-            answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
-            if answer.lower() == 'vk':
-                newbot.some_bot(vk_user_token)
-                break
-            if answer.lower() == 'tg':
-                bot.polling(none_stop=True, interval=0)
-                break
-        except Exception as e:
-            print('Данные введены неверно, попробуйте снова!')
-            bot.polling(none_stop=True, interval=0)
+    bot.polling(none_stop=True, interval=0)
+    # while True:
+    #     try:
+    #         answer = input('Если хотите запустить BK бота: введите "vk", если Telegram бота: введите "tg" ')
+    #         if answer.lower() == 'vk':
+    #             newbot.some_bot(vk_user_token)
+    #             break
+    #         if answer.lower() == 'tg':
+    #             bot.polling(none_stop=True, interval=0)
+    #             break
+    #     except Exception as e:
+    #         print('Данные введены неверно, попробуйте снова!')
+    #         bot.polling(none_stop=True, interval=0)
