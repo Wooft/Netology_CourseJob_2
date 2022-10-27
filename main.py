@@ -18,4 +18,4 @@ newbot = Vk_bot(group_token) #запускаем нового бота
 
 if __name__ == '__main__':
     pool = Pool(processes=2)
-    pool.apply(func=newbot.some_bot(vk_user_token))
+    pool.apply_async(func=newbot.some_bot(vk_user_token))

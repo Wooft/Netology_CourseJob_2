@@ -12,8 +12,7 @@ from database.models import (
     BlackList,
     Checked
 )
-from multiprocessing import Pool
-
+import time
 
 def connect_db():
     engine = create_engine(DSN, echo=True) #Создание временного движка
@@ -112,23 +111,17 @@ class VKinderDB:
         ])
         return persons_info_and_photo
 
-    def insert_new_data_from_vk(self, user_id: int, token: str) -> None:
+    def insert_new_data_from_vk(self, user_id: int, token: str, offset) -> None:
         # добавляем в БД информацию о пользователе
         # и подходящих под его критерии поиска людях в БД
         # информация о самом пользователе будет добавлена в БД
         # только в том случае, если у него больше 3 фото в профиле
         # на входе int (id пользователя, общающегося с ботом)
-        while True:
-            try:
-                offset = 0
-                data = get_user_and_persons_info_from_vk(user_id=user_id, token=token, offset=offset)
-                self.insert_data(table='user', data=data[0])
-                self.insert_data(table='photo', data=data[1])
-                offset += 20
-                print(f'Добавлены {offset} пользователей')
-            except KeyError:
-                pass
-            return
+        data = get_user_and_persons_info_from_vk(user_id=user_id, token=token, offset=offset)
+        self.insert_data(table='user', data=data[0])
+        self.insert_data(table='photo', data=data[1])
+        offset += 20
+        print(f'Добавлены {offset} пользователей')
 
     def check_seen_persons(self, user_id, person_id):
         # проверка человека на наличие в черном списке/избранном/просмотренном
@@ -196,3 +189,8 @@ class VKinderDB:
             persons += 'https://vk.com/id' + str(person.person_get_like_id) + ', '
         result = persons.rstrip(", ")
         return result
+
+    #Возвращает сколько пользователей осталось непросмотренных
+    def get_count_not_checked(self):
+        count = len(self.session.query(User).all()) - len(self.session.query(Checked).all())
+        return count
