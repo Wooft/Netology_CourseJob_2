@@ -186,3 +186,13 @@ class VKinderDB:
             self.session.commit()
         return
 
+    def get_favorite_list(self, user_id):
+    	# На входе id пользователя. На выходе получаем ссылки на профили избранных людей в виде строки(str)
+        persons = str()
+        favorites = self.session.query(Favorite).filter(
+            Favorite.person_send_like_id == user_id
+        ).all()
+        for person in favorites:
+            persons += 'https://vk.com/id' + str(person.person_get_like_id) + ', '
+        result = persons.rstrip(", ")
+        return result

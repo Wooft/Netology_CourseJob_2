@@ -25,6 +25,7 @@ class Vk_bot:
         keyboard.add_button('В избранное', VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button('Остановить поиск', VkKeyboardColor.NEGATIVE)
+        keyboard.add_button('Показать избранных', VkKeyboardColor.PRIMARY)
         return keyboard
 
     def get_person(self, id, token):
@@ -75,6 +76,8 @@ class Vk_bot:
                             vkinder.add_seen_person_to_database(table='favorite', user_id=id, person_id=current_person[0])
                             # просмотренный человек добавляется в таблицу 'favorite'
                             current_person = self.get_person(id, token)
+                    elif msg == 'показать избранных': #Отправка сообщения с ссылками на аккаунты избранных пользователей
+                        self.sent_some_msg(id=id, some_text=vkinder.get_favorite_list(user_id=id), attachment='', keyboard=self.two_keyboard())
                     elif event.type == VkEventType.USER_OFFLINE or msg == "остановить поиск":
                         self.stop_search(id)
                     else:
