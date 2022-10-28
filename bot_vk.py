@@ -29,7 +29,7 @@ class Vk_bot:
         keyboard.add_button('Показать избранных', VkKeyboardColor.PRIMARY)
         return keyboard
 
-    def get_person(self, id, token):
+    def get_person(self, id, token, offset):
         #Если количество непросмотренных пользователей меньше трех - запускаем повторный процесс наполнения БД новыми пользователями
         if vkinder.get_count_not_checked() < 3:
             offset += 50
@@ -55,16 +55,16 @@ class Vk_bot:
                         self.sent_some_msg(id, some_text, '', keyboard=self.firts_keyboard())
                     elif msg == "начать поиск":
                         global offset
-                        offset = 50
+                        offset = 5
                         vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=offset)
                         global current_person
-                        current_person = self.get_person(id, token)
+                        current_person = self.get_person(id, token, offset)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
                         if 'current_person' not in globals():
                             self.fix_restart(id)
                         else:
                             vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
-                            current_person = self.get_person(id, token)
+                            current_person = self.get_person(id, token, offset)
                     elif msg == "в черный список": #Добавляем пользователя в черный список и исключаем его из списка выдачи юзеру
                         if 'current_person' not in locals():
                             self.fix_restart(id)

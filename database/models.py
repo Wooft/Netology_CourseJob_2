@@ -81,5 +81,5 @@ class Checked(Base):
 
 
 def create_table(engine):
-    #Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
