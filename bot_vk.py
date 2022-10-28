@@ -1,12 +1,10 @@
-import pprint
-
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from database.vkinder_db import VKinderDB
 import random
-from multiprocessing import Pool
-from VK_part import get_user_and_persons_info_from_vk
+
+global offset
 
 class Vk_bot:
     def __init__(self, token):
@@ -28,24 +26,22 @@ class Vk_bot:
         keyboard.add_button('В избранное', VkKeyboardColor.POSITIVE)
         keyboard.add_line()
         keyboard.add_button('Остановить поиск', VkKeyboardColor.NEGATIVE)
+        keyboard.add_button('Показать избранных', VkKeyboardColor.PRIMARY)
         return keyboard
 
-    def get_person(self, id, token, offset):
-        # vkinder.insert_new_data_from_vk(user_id=id, token=token)
-        # # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
-        # person_to_send = vkinder.get_person_to_send(user_id=id)
-        # # поиск в БД подходящего человек
-        # current_person = person_to_send
-
-        # self.sent_some_msg(id, f'{person_to_send[1]} {person_to_send[2]} \n {person_to_send[3]}',
-        #                    f'{person_to_send[4]},{person_to_send[5]},{person_to_send[6]}', keyboard)
-        # return current_person
+    def get_person(self, id, token):
+        #Если количество непросмотренных пользователей меньше трех - запускаем повторный процесс наполнения БД новыми пользователями
+        if vkinder.get_count_not_checked() < 3:
+            offset += 50
+            vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=offset)
+        # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
+        person_to_send = vkinder.get_person_to_send(user_id=id)
+        # поиск в БД подходящего человек
+        current_person = person_to_send
         keyboard = self.two_keyboard()
-        person, photo, offset = get_user_and_persons_info_from_vk(id, token, offset)
-        self.sent_some_msg(id, f'{person["person_first_name"]} {person["person_last_name"]} \n {person["person_url"]}',
-                           f'{photo[0]["photo_url"]},{photo[1]["photo_url"]},{photo[2]["photo_url"]}', keyboard=keyboard)
-        return offset
-
+        self.sent_some_msg(id, f'{person_to_send[1]} {person_to_send[2]} \n {person_to_send[3]}',
+                           f'{person_to_send[4]},{person_to_send[5]},{person_to_send[6]}', keyboard)
+        return current_person
 
     def some_bot(self, token: str):
         for event in self.longpool.listen():
@@ -55,16 +51,16 @@ class Vk_bot:
                     id = event.user_id
                     if msg == "начать":  #Первое обращение к боту, указываем на то как начать с ним работу правильно
                         some_text = 'Чтобы начать поиск, нажми на кнопку снизу'
-                        pool = Pool(processes=2)
-                        pool.apply(vkinder.insert_new_data_from_vk(user_id=id, token=token))
-                        # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
                         keyboard = self.firts_keyboard()
                         self.sent_some_msg(id, some_text, '', keyboard=self.firts_keyboard())
                     elif msg == "начать поиск":
-                        offset = 1
-                        offset = self.get_person(id, token, offset)
+                        global offset
+                        offset = 50
+                        vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=offset)
+                        global current_person
+                        current_person = self.get_person(id, token)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
-                        if 'current_person' not in locals():
+                        if 'current_person' not in globals():
                             self.fix_restart(id)
                         else:
                             vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
@@ -85,6 +81,8 @@ class Vk_bot:
                             vkinder.add_seen_person_to_database(table='favorite', user_id=id, person_id=current_person[0])
                             # просмотренный человек добавляется в таблицу 'favorite'
                             current_person = self.get_person(id, token)
+                    elif msg == 'показать избранных': #Отправка сообщения с ссылками на аккаунты избранных пользователей
+                        self.sent_some_msg(id=id, some_text=vkinder.get_favorite_list(user_id=id), attachment='', keyboard=self.two_keyboard())
                     elif event.type == VkEventType.USER_OFFLINE or msg == "остановить поиск":
                         self.stop_search(id)
                     else:
