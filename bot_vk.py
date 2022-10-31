@@ -39,10 +39,8 @@ class Vk_bot:
         elif self.offset == 1000:
             vkinder.clear_seen_lisy(id)
             self.offset = -1
-            print(f'База данных очищена')
         elif self.offset == -1 and vkinder.get_count_not_checked() == 1:
             vkinder.clear_seen_lisy(id)
-            print('Повторная очистка базы данных')
 
         # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
         person_to_send = vkinder.get_person_to_send(user_id=id)
