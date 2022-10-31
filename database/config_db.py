@@ -1,5 +1,5 @@
 USER = 'postgres'
-PASSWORD = '1'
+PASSWORD = ''
 HOST = 'localhost'
 PORT = '5432'
 DB_NAME = 'vkinder'

@@ -1,5 +1,3 @@
-import pprint
-
 import requests
 import re
 import datetime
@@ -77,5 +75,4 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
         dict_person_photo['photo_url'] = f'photo{person[0]}_{person[9]}'
         dict_person_photo['person_id'] = person[0]
         person_photo_result_list.append(dict_person_photo)
-    print(person_info_result_list[-1])
     return person_info_result_list, person_photo_result_list

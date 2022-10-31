@@ -79,7 +79,6 @@ class Checked(Base):
         nullable=False
     )
 
-
 def create_table(engine):
     #Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)

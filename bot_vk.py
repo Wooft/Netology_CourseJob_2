@@ -4,7 +4,6 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from database.vkinder_db import VKinderDB
 import random
 
-global offset
 
 class Vk_bot:
     def __init__(self, token):
@@ -12,6 +11,7 @@ class Vk_bot:
         self.vk_session = vk_api.VkApi(token=self.token)
         self.session_api = self.vk_session.get_api()
         self.longpool = VkLongPoll(self.vk_session)
+        self.offset = 0
 
     def firts_keyboard(self): #Первая клавиатура для начала взаимодействия с ботом
         keyboard = VkKeyboard(one_time=False)
@@ -31,9 +31,19 @@ class Vk_bot:
 
     def get_person(self, id, token):
         #Если количество непросмотренных пользователей меньше трех - запускаем повторный процесс наполнения БД новыми пользователями
-        if vkinder.get_count_not_checked() < 3:
-            offset += 50
-            vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=offset)
+        if vkinder.get_count_not_checked() < 3 and self.offset != -1:
+            self.sent_some_msg(id, 'Обновляем результаты поиска, придется подождать несколько секунд...', '', keyboard=self.two_keyboard())
+            self.offset += 50
+            vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=self.offset)
+        #Если счетчик наполнения достиг своего максимума - очищаем таблицу просмотренных людей, чтобы перезапустить процесс выдачи результатов из базы данных
+        elif self.offset == 1000:
+            vkinder.clear_seen_lisy(id)
+            self.offset = -1
+            print(f'База данных очищена')
+        elif self.offset == -1 and vkinder.get_count_not_checked() == 1:
+            vkinder.clear_seen_lisy(id)
+            print('Повторная очистка базы данных')
+
         # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
         person_to_send = vkinder.get_person_to_send(user_id=id)
         # поиск в БД подходящего человек
@@ -49,14 +59,12 @@ class Vk_bot:
                 if event.to_me:
                     msg = event.text.lower()
                     id = event.user_id
-                    if msg == "начать":  #Первое обращение к боту, указываем на то как начать с ним работу правильно
+                    if msg == "начать":
+                        #Первое обращение к боту, указываем на то как начать с ним работу правильно
                         some_text = 'Чтобы начать поиск, нажми на кнопку снизу'
                         keyboard = self.firts_keyboard()
                         self.sent_some_msg(id, some_text, '', keyboard=self.firts_keyboard())
                     elif msg == "начать поиск":
-                        global offset
-                        offset = 50
-                        vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=offset)
                         global current_person
                         current_person = self.get_person(id, token)
                     elif msg == "следующий": #Переходи к седующему результату выдачи
@@ -66,7 +74,7 @@ class Vk_bot:
                             vkinder.add_seen_person_to_database(table='checked', user_id=id, person_id=current_person[0])
                             current_person = self.get_person(id, token)
                     elif msg == "в черный список": #Добавляем пользователя в черный список и исключаем его из списка выдачи юзеру
-                        if 'current_person' not in locals():
+                        if 'current_person' not in globals():
                             self.fix_restart(id)
                         else:
                             self.sent_some_msg(id, 'Пользователь добавлен в черный список\n'
@@ -74,7 +82,7 @@ class Vk_bot:
                             vkinder.add_seen_person_to_database(table='black_list', user_id=id, person_id=current_person[0])
                             current_person = self.get_person(id, token)
                     elif msg == "в избранное": #Добавление в избранное пользователя (опционально - отправляем уведмоление о лайке тому кого лайкнули)
-                        if 'current_person' not in locals():
+                        if 'current_person' not in globals():
                             self.fix_restart(id)
                         else:
                             self.sent_some_msg(id, 'Пользователь добавлен в избранное', '', keyboard=self.two_keyboard())

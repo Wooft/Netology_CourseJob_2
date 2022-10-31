@@ -120,8 +120,6 @@ class VKinderDB:
         data = get_user_and_persons_info_from_vk(user_id=user_id, token=token, offset=offset)
         self.insert_data(table='user', data=data[0])
         self.insert_data(table='photo', data=data[1])
-        offset += 20
-        print(f'Добавлены {offset} пользователей')
 
     def check_seen_persons(self, user_id, person_id):
         # проверка человека на наличие в черном списке/избранном/просмотренном
@@ -194,3 +192,9 @@ class VKinderDB:
     def get_count_not_checked(self):
         count = len(self.session.query(User).all()) - len(self.session.query(Checked).all())
         return count
+
+    def clear_seen_lisy(self, id):
+        for c in self.session.query(Checked).filter(Checked.person_checked_id == id).all():
+            self.session.delete(c)
+        self.session.commit()
+
