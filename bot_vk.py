@@ -37,10 +37,10 @@ class Vk_bot:
             vkinder.insert_new_data_from_vk(user_id=id, token=token, offset=self.offset)
         #Если счетчик наполнения достиг своего максимума - очищаем таблицу просмотренных людей, чтобы перезапустить процесс выдачи результатов из базы данных
         elif self.offset == 1000:
-            vkinder.clear_seen_lisy(id)
+            vkinder.clear_seen_list(id)
             self.offset = -1
         elif self.offset == -1 and vkinder.get_count_not_checked() == 1:
-            vkinder.clear_seen_lisy(id)
+            vkinder.clear_seen_list(id)
 
         # в БД добавляются пользователи (до 50), подходящие под критерии поиска, чтобы БД не опустела
         person_to_send = vkinder.get_person_to_send(user_id=id)

@@ -190,10 +190,12 @@ class VKinderDB:
 
     #Возвращает сколько пользователей осталось непросмотренных
     def get_count_not_checked(self):
-        count = len(self.session.query(User).all()) - len(self.session.query(Checked).all())
+        count = len(self.session.query(User).all()) - \
+                (len(self.session.query(Checked).all()) + len(self.session.query(Favorite).all()) +
+                 len(self.session.query(BlackList).all()))
         return count
 
-    def clear_seen_lisy(self, id):
+    def clear_seen_list(self, id):
         for c in self.session.query(Checked).filter(Checked.person_checked_id == id).all():
             self.session.delete(c)
         self.session.commit()
