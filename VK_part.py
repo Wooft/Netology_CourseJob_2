@@ -21,7 +21,7 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
     time.sleep(0.5)
     photos = get_user_photo(fitted_person['id'], token, offset)
     person_info =   {'person_age': datetime.datetime.now().year - int(re.findall(string=fitted_person['bdate'], pattern='\d{4}')[0]),
-                     'person_city_id': fitted_person['city']['id'],
+                     # 'person_city_id': fitted_person['city']['id'],
                      'person_first_name': fitted_person['first_name'],
                      'person_id': fitted_person['id'],
                      'person_last_name': fitted_person['last_name'],
@@ -38,7 +38,7 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
 
 def search_user(user_id, token, offset):
     global person
-    time.sleep(0.4)
+    time.sleep(0.5)
     url_users_get = 'https://api.vk.com/method/users.get'
     params_users_get = {'access_token': token, 'v': '5.131', 'user_ids': user_id, 'fields': 'sex, city, bdate'}
     user_info = requests.get(url=url_users_get, params=params_users_get).json()['response'][0]
@@ -113,6 +113,17 @@ def check_id(some_id, token):
         return False
     else:
         return True
+
+def get_self_info(some_id, token):
+    url_users_get = 'https://api.vk.com/method/users.get'
+    params_users_get = {'access_token': token, 'v': '5.131', 'user_ids': some_id, 'fields': 'sex, city, bdate'}
+    response = requests.get(url=url_users_get, params=params_users_get).json()['response'][0]
+    person = {
+        'name': response['first_name'],
+        'last_name': response['last_name'],
+    }
+    return person
+
 
 
 
