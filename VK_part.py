@@ -19,7 +19,7 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
     sex_users_search = 1 if user_sex_id == 2 else 2
     params_users_search = {'sex': sex_users_search, 'birth_year': user_year_of_birth, 'city': user_city_id,
                            'access_token': token, 'has_photo': '1', 'v': '5.131',
-                           'count': '50', 'offset': offset, 'fields': 'sex, city, bdate'}
+                           'count': '10', 'offset': offset, 'fields': 'sex, city, bdate'}
     fitted_person = requests.get(url=url_users_search, params=params_users_search).json()['response']['items']
     fitted_person_not_closed = list()
     fitted_person_not_closed.append(
@@ -49,7 +49,7 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
                 if photo['likes']['count'] in likes_list_top_3:
                     if len(person) < 10:
                         person.append(photo['id'])
-            if len(person) > 9:
+            if len(person) > 9 or person[0] == user_id:
                 person_list.append(person)
         except KeyError:
             pass
@@ -67,12 +67,15 @@ def get_user_and_persons_info_from_vk(user_id, token, offset):
         dict_person_photo['photo_url'] = f'photo{person[0]}_{person[7]}'
         dict_person_photo['person_id'] = person[0]
         person_photo_result_list.append(dict_person_photo)
-        dict_person_photo = dict()
-        dict_person_photo['photo_url'] = f'photo{person[0]}_{person[8]}'
-        dict_person_photo['person_id'] = person[0]
-        person_photo_result_list.append(dict_person_photo)
-        dict_person_photo = dict()
-        dict_person_photo['photo_url'] = f'photo{person[0]}_{person[9]}'
-        dict_person_photo['person_id'] = person[0]
-        person_photo_result_list.append(dict_person_photo)
+        try:
+            dict_person_photo = dict()
+            dict_person_photo['photo_url'] = f'photo{person[0]}_{person[8]}'
+            dict_person_photo['person_id'] = person[0]
+            person_photo_result_list.append(dict_person_photo)
+            dict_person_photo = dict()
+            dict_person_photo['photo_url'] = f'photo{person[0]}_{person[9]}'
+            dict_person_photo['person_id'] = person[0]
+            person_photo_result_list.append(dict_person_photo)
+        except IndexError:
+            pass
     return person_info_result_list, person_photo_result_list

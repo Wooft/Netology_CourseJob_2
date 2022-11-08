@@ -115,7 +115,7 @@ class VKinderDB:
         # добавляем в БД информацию о пользователе
         # и подходящих под его критерии поиска людях в БД
         # информация о самом пользователе будет добавлена в БД
-        # только в том случае, если у него больше 3 фото в профиле
+        # независимо от количества фото в профиле
         # на входе int (id пользователя, общающегося с ботом)
         data = get_user_and_persons_info_from_vk(user_id=user_id, token=token, offset=offset)
         self.insert_data(table='user', data=data[0])
@@ -199,4 +199,3 @@ class VKinderDB:
         for c in self.session.query(Checked).filter(Checked.person_checked_id == id).all():
             self.session.delete(c)
         self.session.commit()
-
